@@ -258,7 +258,8 @@ const CONFIG = {
   ],
 
   // Location options shown in the Location filter panel.
-  // key must match the `location` field on items exactly (lowercase).
+  // key must match the `location` field on items exactly (lowercase). Items in
+  // several cities list them all; the card shows if ANY of its cities is selected.
   locations: [
     { key: "santa barbara", label: "Santa Barbara" },
     { key: "goleta",        label: "Goleta"        },
@@ -280,11 +281,12 @@ const CONFIG = {
         return i.cheese.length === 0 && !d.some(x => [...i.sauce,...i.extras].join(" ").toLowerCase().includes(x));
       }
     },
+    // Anything that passes "No meat" (vegetarian, or has a vegetarian option) also passes these
     { key: "no-pork",   label: "No pork",
-      test: i => { const p = ["pork","carnitas","al pastor","chorizo","ham","bacon","chicharron"]; return !p.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
+      test: i => { const p = ["pork","carnitas","al pastor","chorizo","ham","bacon","chicharron"]; return !i.meat || !p.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
     },
     { key: "no-beef",   label: "No beef",
-      test: i => { const b = ["beef","carne asada","steak","barbacoa","birria"]; return !b.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
+      test: i => { const b = ["beef","carne asada","steak","barbacoa","birria","tri-tip"]; return !i.meat || !b.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
     },
     { key: "no-chicken", label: "No chicken",
       test: i => !i.protein.join(" ").toLowerCase().includes("chicken")
@@ -305,7 +307,7 @@ const CONFIG = {
 //  │  Each item needs these fields:                                          │
 //  │    restaurant  string    — restaurant name                              │
 //  │    name        string    — burrito name                                 │
-//  │    address     string    — street address                               │
+//  │    address     string|string[] — street address(es), one line each      │
 //  │    protein     string[]  — protein ingredients                          │
 //  │    cheese      string[]  — cheese ingredients                           │
 //  │    veg         string[]  — vegetables / produce                         │
@@ -316,7 +318,7 @@ const CONFIG = {
 //  │    notes       string    — hours / caveats (shown in italic on card)    │
 //  │    anchor      string    — URL hash for the article link, e.g. "#taco"  │
 //  │    image       string    — full image URL                               │
-//  │    location    string    — must match a key in CONFIG.locations          │
+//  │    location    string|string[] — key(s) from CONFIG.locations           │
 //  │    days        string[]  — days open: "monday"…"sunday"                 │
 //  └─────────────────────────────────────────────────────────────────────────┘
 // ════════════════════════════════════════════════════════════════════════════
@@ -340,20 +342,13 @@ const ITEMS = [
 
   // ── Corazón Cocina (SB) & Corazón Cocina Sur (Carpinteria) ──
   {
-    restaurant: "Corazón Cocina", name: "El Paisa Burrito", address: "38 W. Victoria St., Unit 122 (Public Market)",
+    restaurant: "Corazón Cocina & Corazón Cocina Sur", name: "El Paisa Burrito",
+    address: ["38 W. Victoria St., Unit 122 (Public Market), Santa Barbara", "772 Linden Ave., Carpinteria (Corazón Cocina Sur)"],
     protein: ["al pastor pork"], cheese: ["cheese"], veg: ["pico de gallo"],
     sauce: ["crema", "salsa mugrosa", "tomatillo salsa"], extras: ["peruano beans", "french fries"], dietary: [], meat: true,
-    notes: "11 a.m.–4 p.m. only",
+    notes: "11 a.m.–4 p.m. only, both locations",
     anchor: "#h-corazon-cocina-amp-corazon-cocina-sur-el-paisa-burrito", image: IMG + "Corazon-Cocina-by-Ryan-Cruz-2-rotated.jpeg?w=850&resize=1024%2C768",
-    location: "santa barbara", days: WEEK,
-  },
-  {
-    restaurant: "Corazón Cocina Sur", name: "El Paisa Burrito", address: "772 Linden Ave., Carpinteria",
-    protein: ["al pastor pork"], cheese: ["cheese"], veg: ["pico de gallo"],
-    sauce: ["crema", "salsa mugrosa", "tomatillo salsa"], extras: ["peruano beans", "french fries"], dietary: [], meat: true,
-    notes: "11 a.m.–4 p.m. only",
-    anchor: "#h-corazon-cocina-amp-corazon-cocina-sur-el-paisa-burrito", image: IMG + "Corazon-Cocina-by-Ryan-Cruz-2-rotated.jpeg?w=850&resize=1024%2C768",
-    location: "carpinteria", days: WEEK,
+    location: ["santa barbara", "carpinteria"], days: WEEK,
   },
 
   // ── Cristino's Bakery ──
@@ -368,30 +363,23 @@ const ITEMS = [
 
   // ── Crushcakes & Café (SB & Goleta) ──
   {
-    restaurant: "Crushcakes & Café", name: "Bear Hug Burrito", address: "1315 Anacapa St.",
+    restaurant: "Crushcakes & Café", name: "Bear Hug Burrito",
+    address: ["1315 Anacapa St., Santa Barbara", "5392 Hollister Ave., Goleta"],
     protein: ["fried eggs", "bacon (optional)"], cheese: ["jack cheese"], veg: ["roasted potatoes", "red onions", "arugula", "avocado (optional)"],
     sauce: [], extras: ["tortilla chips (side)"], dietary: ["breakfast", "vegetarian option"], meat: false,
     notes: "Regular hours · dine-in & to-go · choice of avocado or bacon",
     anchor: "#h-crushcakes-amp-cafe-bear-hug-burrito-nbsp", image: IMG + "Crushcakes-by-Erin-Lynch-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "santa barbara", days: WEEK,
-  },
-  {
-    restaurant: "Crushcakes & Café", name: "Bear Hug Burrito", address: "5392 Hollister Ave., Goleta",
-    protein: ["fried eggs", "bacon (optional)"], cheese: ["jack cheese"], veg: ["roasted potatoes", "red onions", "arugula", "avocado (optional)"],
-    sauce: [], extras: ["tortilla chips (side)"], dietary: ["breakfast", "vegetarian option"], meat: false,
-    notes: "Regular hours · dine-in & to-go · choice of avocado or bacon",
-    anchor: "#h-crushcakes-amp-cafe-bear-hug-burrito-nbsp", image: IMG + "Crushcakes-by-Erin-Lynch-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "goleta", days: WEEK,
+    location: ["santa barbara", "goleta"], days: WEEK,
   },
 
   // ── Dave's Dogs ──
   {
-    restaurant: "Dave's Dogs", name: "The Early Riser", address: "149 S. Turnpike Rd.",
+    restaurant: "Dave's Dogs", name: "The Early Riser", address: "149 S. Turnpike Rd., Goleta",
     protein: ["scrambled eggs", "breakfast sausage patty"], cheese: ["cheddar"], veg: [],
     sauce: ["chipotle aioli"], extras: ["tater tots"], dietary: ["breakfast"], meat: true,
     notes: "Breakfast only, 8–10:30 a.m.",
     anchor: "#h-dave-s-dogs-the-early-riser", image: IMG + "Daves-Dogs-by-Dave-Callanan-2.jpeg?w=850&resize=1024%2C768",
-    location: "santa barbara", days: WEEK,
+    location: "goleta", days: WEEK,
   },
 
   // ── Downtown Eats ──
@@ -514,54 +502,33 @@ const ITEMS = [
     location: "santa barbara", days: WEEK,
   },
 
-  // ── Los Agaves (SB: 600 N. Milpas & 2911 De la Vina · Goleta: 7024 Marketplace Dr.) ──
+  // ── Los Agaves (SB & Goleta) ──
   {
-    restaurant: "Los Agaves", name: "Pastor Burrito", address: "600 N. Milpas St. · 2911 De la Vina St.",
+    restaurant: "Los Agaves", name: "Pastor Burrito",
+    address: ["600 N. Milpas St., Santa Barbara", "2911 De la Vina St., Santa Barbara", "7024 Marketplace Dr., Goleta"],
     protein: ["al pastor pork"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
     sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
     notes: "Dine-in only",
     anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "santa barbara", days: WEEK,
+    location: ["santa barbara", "goleta"], days: WEEK,
   },
   {
-    restaurant: "Los Agaves", name: "Garden Burrito", address: "600 N. Milpas St. · 2911 De la Vina St.",
+    restaurant: "Los Agaves", name: "Garden Burrito",
+    address: ["600 N. Milpas St., Santa Barbara", "2911 De la Vina St., Santa Barbara", "7024 Marketplace Dr., Goleta"],
     protein: [], cheese: ["jack cheese"], veg: ["zucchini", "red bell peppers", "carrots", "lettuce", "guacamole", "pico de gallo"],
     sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: ["vegetarian"], meat: false,
     notes: "Dine-in only",
     anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "santa barbara", days: WEEK,
+    location: ["santa barbara", "goleta"], days: WEEK,
   },
   {
-    restaurant: "Los Agaves", name: "Chicken Burrito", address: "600 N. Milpas St. · 2911 De la Vina St.",
+    restaurant: "Los Agaves", name: "Chicken Burrito",
+    address: ["600 N. Milpas St., Santa Barbara", "2911 De la Vina St., Santa Barbara", "7024 Marketplace Dr., Goleta"],
     protein: ["grilled chicken"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
     sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
     notes: "Dine-in only",
     anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "santa barbara", days: WEEK,
-  },
-  {
-    restaurant: "Los Agaves", name: "Pastor Burrito", address: "7024 Marketplace Dr., Goleta",
-    protein: ["al pastor pork"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
-    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
-    notes: "Dine-in only",
-    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "goleta", days: WEEK,
-  },
-  {
-    restaurant: "Los Agaves", name: "Garden Burrito", address: "7024 Marketplace Dr., Goleta",
-    protein: [], cheese: ["jack cheese"], veg: ["zucchini", "red bell peppers", "carrots", "lettuce", "guacamole", "pico de gallo"],
-    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: ["vegetarian"], meat: false,
-    notes: "Dine-in only",
-    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "goleta", days: WEEK,
-  },
-  {
-    restaurant: "Los Agaves", name: "Chicken Burrito", address: "7024 Marketplace Dr., Goleta",
-    protein: ["grilled chicken"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
-    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
-    notes: "Dine-in only",
-    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
-    location: "goleta", days: WEEK,
+    location: ["santa barbara", "goleta"], days: WEEK,
   },
 
   // ── Maíz Picante ──
@@ -640,20 +607,13 @@ const ITEMS = [
 
   // ── Renaud's Patisserie & Bistro (SB & Montecito) ──
   {
-    restaurant: "Renaud's Patisserie & Bistro", name: "Breakfast Burrito", address: "3315 State St. · 1324 State St., Ste. N",
+    restaurant: "Renaud's Patisserie & Bistro", name: "Breakfast Burrito",
+    address: ["3315 State St., Santa Barbara", "1324 State St., Ste. N, Santa Barbara", "1187 Coast Village Rd., Ste. 7, Montecito"],
     protein: ["bacon", "eggs"], cheese: ["swiss cheese"], veg: ["potatoes"],
     sauce: ["roasted tomato salsa"], extras: [], dietary: ["breakfast"], meat: true,
     notes: "Available until 2:30 p.m.",
     anchor: "#h-renaud-s-patisserie-amp-bistro-breakfast-burrito", image: IMG + "Renauds-by-Leslie-Dinaberg-1-1.jpeg?w=768&resize=768%2C1024",
-    location: "santa barbara", days: WEEK,
-  },
-  {
-    restaurant: "Renaud's Patisserie & Bistro", name: "Breakfast Burrito", address: "1187 Coast Village Rd., Ste. 7, Montecito",
-    protein: ["bacon", "eggs"], cheese: ["swiss cheese"], veg: ["potatoes"],
-    sauce: ["roasted tomato salsa"], extras: [], dietary: ["breakfast"], meat: true,
-    notes: "Available until 2:30 p.m.",
-    anchor: "#h-renaud-s-patisserie-amp-bistro-breakfast-burrito", image: IMG + "Renauds-by-Leslie-Dinaberg-1-1.jpeg?w=768&resize=768%2C1024",
-    location: "montecito", days: WEEK,
+    location: ["santa barbara", "montecito"], days: WEEK,
   },
 
   // ── Rinkside Café ──
@@ -678,12 +638,13 @@ const ITEMS = [
 
   // ── Shalhoob's ──
   {
-    restaurant: "Shalhoob's", name: "Santa Barbara Style Burrito", address: "220 Gray Ave. · 5112 Hollister Ave.",
+    restaurant: "Shalhoob's", name: "Santa Barbara Style Burrito",
+    address: ["220 Gray Ave., Santa Barbara", "5112 Hollister Ave., Goleta"],
     protein: ["smoked tri-tip"], cheese: ["cheese"], veg: ["pico de gallo", "avocado"],
     sauce: ["avocado salsa"], extras: ["cowboy beans", "french fries"], dietary: [], meat: true,
     notes: "Dine-in only",
     anchor: "#h-shalhoob-s-santa-barbara-style-burrito", image: IMG + "Shalhoob-by-Dave-Callanan-2.jpeg?w=768&resize=768%2C1024",
-    location: "santa barbara", days: WEEK,
+    location: ["santa barbara", "goleta"], days: WEEK,
   },
 
   // ── Seoulmate Kitchen ──
@@ -962,7 +923,7 @@ function itemPassesAllFilters(item) {
     if (f && !f.test(item)) return false;
   }
   if (daySelected.size > 0 && ![...daySelected].some(d => (item.days || []).includes(d))) return false;
-  if (locSelected.size > 0 && !locSelected.has(item.location)) return false;
+  if (locSelected.size > 0 && ![].concat(item.location).some(l => locSelected.has(l))) return false;
   return true;
 }
 
@@ -1069,7 +1030,7 @@ function buildCards() {
           <div class="card-restaurant">${item.restaurant}</div>
           <div class="card-name">${item.name}</div>
           <div class="card-ingredients">${allIng.map(ing => `<span class="ing-tag">${ing}</span>`).join('')}</div>
-          <div class="card-address">${item.address}</div>
+          ${[].concat(item.address).map(a => `<div class="card-address">${a}</div>`).join('')}
           ${item.notes ? `<div class="card-notes">${item.notes}</div>` : ''}
           ${CONFIG.articleBase && item.anchor ? `<div class="read-more">Read full review →</div>` : ''}
         </div>
