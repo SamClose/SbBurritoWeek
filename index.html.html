@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SB Burrito Week 2026 — Find Your Burrito</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --mustard: #D4A017;
+    --rust: #B5451B;
+    --cream: #FDF8EE;
+    --paper: #F5EDD8;
+    --ink: #1A1208;
+    --mid: #6B5A3E;
+    --light: #E8DFC8;
+    --white: #FFFEF9;
+    --green: #2D5016;
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  header { background: var(--ink); padding: 2rem 1.5rem 1.5rem; text-align: center; border-bottom: 4px solid var(--mustard); }
+  .eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mustard); margin-bottom: 0.5rem; }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 6vw, 3.5rem); font-weight: 900; color: var(--cream); line-height: 1.05; margin-bottom: 0.5rem; }
+  header h1 span { color: var(--mustard); }
+  .tagline { font-size: 0.85rem; color: #A89878; margin-top: 0.5rem; }
+  .article-link { font-size: 0.75rem; color: #7A6850; margin-top: 0.75rem; }
+  .article-link a { color: var(--mustard); text-decoration: underline; text-underline-offset: 2px; opacity: 0.85; }
+  .article-link a:hover { opacity: 1; }
+
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 0; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 140px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar { background: var(--white); border-right: 1px solid var(--light); padding: 1.25rem 1.25rem 2rem; position: sticky; top: 0; height: calc(100vh - 140px); overflow-y: auto; }
+  .sidebar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .sidebar-top h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--ink); }
+  .clear-btn { padding: 0.3rem 0.75rem; background: none; border: 1.5px solid var(--light); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: var(--mid); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .clear-btn:hover { border-color: var(--rust); color: var(--rust); }
+
+  /* Search bar */
+  .search-wrap { position: relative; margin-bottom: 1rem; }
+  .search-wrap input { width: 100%; padding: 0.5rem 2rem 0.5rem 2rem; border: 1.5px solid var(--light); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; background: var(--cream); color: var(--ink); outline: none; transition: border-color 0.15s; }
+  .search-wrap input:focus { border-color: var(--mustard); }
+  .search-clear { position: absolute; right: 0.55rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--mid); font-size: 0.75rem; line-height: 1; padding: 0.15rem 0.2rem; border-radius: 3px; display: none; transition: color 0.15s; }
+  .search-clear:hover { color: var(--rust); }
+  .search-clear.visible { display: block; }
+  .search-wrap::before { content: '🔍'; position: absolute; left: 0.55rem; top: 50%; transform: translateY(-50%); font-size: 0.7rem; pointer-events: none; }
+
+  /* Top-level filter group */
+  .filter-group { border: 1px solid var(--light); border-radius: 8px; margin-bottom: 0.6rem; overflow: hidden; }
+  .filter-group-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; background: var(--paper); cursor: pointer; user-select: none; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); transition: background 0.15s, color 0.15s; }
+  .filter-group-header:hover { background: var(--light); color: var(--ink); }
+  .filter-group-header .fg-arrow { font-size: 0.6rem; transition: transform 0.2s ease; opacity: 0.6; }
+  .filter-group.collapsed .fg-arrow { transform: rotate(-90deg); }
+  .filter-group-body { padding: 0.5rem 0.85rem 0.75rem; overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.2s ease; max-height: 3000px; opacity: 1; }
+  .filter-group.collapsed .filter-group-body { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+
+  /* Category sections inside Ingredients group */
+  .category-section { margin-bottom: 0.1rem; }
+  .category-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--mid); margin: 0.75rem 0 0; padding-bottom: 0.2rem; border-bottom: 1px solid var(--light); cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+  .category-label:hover { color: var(--ink); }
+  .cat-arrow { font-size: 0.6rem; transition: transform 0.2s ease; opacity: 0.6; }
+  .category-section.collapsed .cat-arrow { transform: rotate(-90deg); }
+  .chip-list { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.35rem; overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s ease; max-height: 2000px; opacity: 1; }
+  .category-section.collapsed .chip-list { max-height: 0; opacity: 0; margin-top: 0; }
+
+  .chip { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.65rem; border: 1.5px solid var(--light); border-radius: 6px; font-size: 0.78rem; font-weight: 500; color: var(--mid); background: var(--cream); cursor: pointer; transition: all 0.12s ease; user-select: none; }
+  .chip:hover { border-color: var(--mustard); color: var(--ink); background: #FFF8E6; }
+  .chip.active { background: var(--mustard); border-color: var(--mustard); color: var(--ink); font-weight: 600; }
+  .chip.hidden-by-search { display: none; }
+  .chip .checkmark { width: 14px; height: 14px; border: 1.5px solid currentColor; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.6rem; opacity: 0.5; }
+  .chip.active .checkmark { background: var(--ink); border-color: var(--ink); color: var(--mustard); opacity: 1; }
+  .chip.active .checkmark::after { content: '✓'; }
+  .chip.dietary-negative { border-style: dashed; }
+  .chip.dietary-negative.active { background: #2D5016; border-color: #2D5016; color: #fff; }
+  .chip.dietary-negative.active .checkmark { background: #fff; border-color: #fff; color: #2D5016; }
+  .no-results-msg { font-size: 0.75rem; color: var(--mid); font-style: italic; padding: 0.5rem 0; display: none; }
+
+  /* ── RESULTS PANEL ── */
+  .results { padding: 1.5rem 2rem; }
+  .active-selections { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; min-height: 0; }
+  .active-selections:empty { display: none; }
+  .sel-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 2rem; font-size: 0.72rem; font-weight: 600; background: var(--mustard); color: var(--ink); cursor: pointer; }
+  .sel-chip.negative { background: #2D5016; color: #fff; }
+  .sel-chip .remove { font-size: 0.65rem; opacity: 0.7; margin-left: 0.1rem; }
+  .sel-chip:hover .remove { opacity: 1; }
+  .results-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--light); }
+  .results-header h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--ink); }
+  .count-badge { font-size: 0.75rem; background: var(--mustard); color: var(--ink); font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 1rem; }
+  .match-note { font-size: 0.78rem; color: var(--mid); margin-left: auto; }
+
+  /* ── CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+  .card-link { text-decoration: none; color: inherit; display: block; }
+  .card { background: var(--white); border: 1px solid var(--light); border-radius: 8px; overflow: hidden; transition: box-shadow 0.15s, border-color 0.15s; position: relative; height: 100%; }
+  .card-link:hover .card { box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-color: var(--mustard); }
+  .card.hidden { display: none; }
+  .card-link.hidden { display: none; }
+  .card-img { width: 100%; height: 180px; object-fit: cover; display: block; background: var(--paper); }
+  .card-body { padding: 1rem 1.1rem 1rem; }
+  .card-restaurant { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rust); margin-bottom: 0.3rem; }
+  .card-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 0.5rem; line-height: 1.25; }
+  .card-ingredients { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.75rem; }
+  .ing-tag { font-size: 0.68rem; padding: 0.15rem 0.5rem; border-radius: 3px; background: var(--paper); color: var(--mid); }
+  .ing-tag.matched { background: #FFF3C4; color: #7A5800; font-weight: 600; }
+  .card-address { font-size: 0.72rem; color: var(--mid); display: flex; align-items: flex-start; gap: 0.3rem; }
+  .card-address::before { content: '📍'; font-size: 0.65rem; margin-top: 0.05rem; flex-shrink: 0; }
+  .card-notes { font-size: 0.7rem; color: var(--rust); margin-top: 0.4rem; font-style: italic; }
+  .read-more { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.65rem; font-size: 0.7rem; font-weight: 600; color: var(--rust); letter-spacing: 0.04em; opacity: 0.8; }
+  .card-link:hover .read-more { opacity: 1; text-decoration: underline; }
+  .match-score { position: absolute; top: 0.6rem; right: 0.7rem; font-size: 0.65rem; font-weight: 700; color: var(--green); background: #E8F5D8; padding: 0.15rem 0.45rem; border-radius: 3px; display: none; z-index: 1; }
+  .match-score.visible { display: block; }
+
+  /* ── COMING SOON card (shown when ITEMS is empty) ── */
+  .coming-soon {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--mid);
+  }
+  .coming-soon .cs-emoji { font-size: 3.5rem; margin-bottom: 1rem; }
+  .coming-soon h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--ink); margin-bottom: 0.5rem; }
+  .coming-soon p { font-size: 0.9rem; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+
+  /* ── MOBILE FILTER TOGGLE ── */
+  .filter-toggle-btn { display: none; }
+
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; position: relative; }
+    .sidebar { position: static; height: auto; max-height: 0; overflow: hidden; border-right: none; border-bottom: none; padding: 0 1.25rem; transition: max-height 0.35s ease, padding 0.3s ease; }
+    .sidebar.mobile-open { max-height: 9999px; padding: 1.25rem 1.25rem 1.5rem; border-bottom: 2px solid var(--mustard); }
+    .results { padding: 1rem; }
+    .filter-toggle-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1.25rem; background: var(--ink); color: var(--cream); border: none; border-bottom: 2px solid var(--mustard); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; position: sticky; top: 0; z-index: 100; }
+    .filter-toggle-btn .toggle-left { display: flex; align-items: center; gap: 0.5rem; }
+    .filter-toggle-btn .toggle-count { background: var(--mustard); color: var(--ink); font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 1rem; display: none; }
+    .filter-toggle-btn .toggle-count.has-filters { display: inline-block; }
+    .filter-toggle-btn .toggle-arrow { font-size: 0.7rem; transition: transform 0.25s ease; opacity: 0.7; }
+    .filter-toggle-btn.open .toggle-arrow { transform: rotate(180deg); }
+    .card-img { height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow" id="hdr-eyebrow"></div>
+  <h1 id="hdr-title"></h1>
+  <div class="tagline" id="hdr-tagline"></div>
+  <div class="article-link" id="hdr-article-link"></div>
+</header>
+
+<div class="layout">
+  <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleMobileSidebar()">
+    <span class="toggle-left">🌯 Filters <span class="toggle-count" id="mobile-filter-count"></span></span>
+    <span class="toggle-arrow">▾</span>
+  </button>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <h2>Filters</h2>
+      <button class="clear-btn" onclick="clearAll()">✕ Clear all</button>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="ing-search" placeholder="Search all filters…" oninput="filterChips(this.value)" autocomplete="off">
+      <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search">✕</button>
+    </div>
+    <div id="no-results-msg" class="no-results-msg">No filters match your search.</div>
+
+    <!-- ── INGREDIENTS group ── -->
+    <div class="filter-group" id="fg-ingredients">
+      <div class="filter-group-header" onclick="toggleGroup('fg-ingredients')">
+        Ingredients <span class="fg-arrow">▾</span>
+      </div>
+      <div class="filter-group-body" id="fg-ingredients-body">
+        <!-- subcategory sections injected by buildChips() -->
+      </div>
+    </div>
+
+    <!-- ── DAYS & HOURS group ── -->
+    <div class="filter-group" id="fg-days">
+      <div class="filter-group-header" onclick="toggleGroup('fg-days')">
+        Days &amp; Hours <span class="fg-arrow">▾</span>
+      </div>
+      <div class="filter-group-body">
+        <div class="chip-list" id="cat-days"></div>
+      </div>
+    </div>
+
+    <!-- ── LOCATION group ── -->
+    <div class="filter-group" id="fg-location">
+      <div class="filter-group-header" onclick="toggleGroup('fg-location')">
+        Location <span class="fg-arrow">▾</span>
+      </div>
+      <div class="filter-group-body">
+        <div class="chip-list" id="cat-location"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="results">
+    <div class="active-selections" id="active-selections"></div>
+    <div class="results-header">
+      <h2 id="results-title">Burritos</h2>
+      <span class="count-badge" id="count">0</span>
+      <span class="match-note" id="match-note"></span>
+    </div>
+    <div class="cards" id="cards"></div>
+  </main>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  ██████╗ ██████╗ ██████╗ ██████╗      ██╗███╗   ██╗
+//  ██╔══██╗██╔══██╗██╔══██╗██╔══██╗     ██║████╗  ██║
+//  ██║  ██║██████╔╝██║  ██║██████╔╝     ██║██╔██╗ ██║
+//  ██║  ██║██╔══██╗██║  ██║██╔══██╗     ██║██║╚██╗██║
+//  ██████╔╝██║  ██║██████╔╝██║  ██║     ██║██║ ╚████║
+//  ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝     ╚═╝╚═╝  ╚═══╝
+//
+//  ┌─────────────────────────────────────────────────────────────────────────┐
+//  │  STEP 1 — Edit CONFIG to match the event                               │
+//  └─────────────────────────────────────────────────────────────────────────┘
+// ════════════════════════════════════════════════════════════════════════════
+
+const CONFIG = {
+  // Header
+  eyebrow:       "Santa Barbara Independent · Sept. 24–30, 2026 · $9 Burritos",
+  titlePrefix:   "SB",
+  titleHighlight:"Burrito",
+  titleSuffix:   "Week",
+  tagline:       "Pick ingredients → find your $9 burrito",
+
+  // Article link (set to null to hide)
+  articleUrl:    "https://www.independent.com/2026/09/23/how-many-9-burritos-can-you-bag/",
+  articleLabel:  "See the full article with reviews on SB Independent here",
+
+  // Results panel heading
+  itemLabel:     "Burritos",
+
+  // Mobile toggle emoji
+  mobileEmoji:   "🌯",
+
+  // Base URL for card links (article anchor). Set to null to make cards non-clickable.
+  articleBase:   "https://www.independent.com/2026/09/23/how-many-9-burritos-can-you-bag/",
+
+  // Ingredient subcategories to show in the Ingredients filter panel.
+  // Each entry becomes a collapsible subsection. Keys must match the fields
+  // used on each item in ITEMS below.
+  ingredientCategories: [
+    { key: "protein", label: "Proteins"              },
+    { key: "cheese",  label: "Cheese"                },
+    { key: "veg",     label: "Vegetables & Produce"  },
+    { key: "sauce",   label: "Sauces & Condiments"   },
+    { key: "extras",  label: "Extras & Add-ons"      },
+  ],
+
+  // Location options shown in the Location filter panel.
+  // key must match the `location` field on items exactly (lowercase).
+  locations: [
+    { key: "santa barbara", label: "Santa Barbara" },
+    { key: "goleta",        label: "Goleta"        },
+    { key: "isla vista",    label: "Isla Vista"    },
+    { key: "montecito",     label: "Montecito"     },
+    { key: "carpinteria",   label: "Carpinteria"   },
+    { key: "buellton",      label: "Buellton"      },
+  ],
+
+  // Dietary restriction filters (negative — filter OUT items that contain something).
+  // Each entry needs: key (unique string), label (shown in UI), and a test(item)
+  // function that returns true if the item PASSES (i.e. is safe to show).
+  dietaryFilters: [
+    { key: "no-meat",    label: "No meat",    test: i => !i.meat },
+    { key: "no-cheese",  label: "No cheese",  test: i => i.cheese.length === 0 },
+    { key: "no-dairy",   label: "No dairy",
+      test: i => {
+        const d = ["cheese","cream","butter","milk","sour cream","cheddar","jack","queso","cotija","crema","oaxacan"];
+        return i.cheese.length === 0 && !d.some(x => [...i.sauce,...i.extras].join(" ").toLowerCase().includes(x));
+      }
+    },
+    { key: "no-pork",   label: "No pork",
+      test: i => { const p = ["pork","carnitas","al pastor","chorizo","ham","bacon","chicharron"]; return !p.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
+    },
+    { key: "no-beef",   label: "No beef",
+      test: i => { const b = ["beef","carne asada","steak","barbacoa","birria"]; return !b.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
+    },
+    { key: "no-chicken", label: "No chicken",
+      test: i => !i.protein.join(" ").toLowerCase().includes("chicken")
+    },
+    { key: "no-poultry", label: "No poultry",
+      test: i => { const p = ["chicken","turkey","duck","poultry"]; return !p.some(x => i.protein.join(" ").toLowerCase().includes(x)); }
+    },
+    { key: "no-nuts",   label: "No nuts",
+      test: i => { const n = ["cashew","peanut","almond","walnut","pecan","pine nut","pistachio","hazelnut"]; return !n.some(x => [...i.protein,...i.veg,...i.sauce,...i.extras].join(" ").toLowerCase().includes(x)); }
+    },
+  ],
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ┌─────────────────────────────────────────────────────────────────────────┐
+//  │  STEP 2 — Replace ITEMS with the real menu data when available         │
+//  │                                                                         │
+//  │  Each item needs these fields:                                          │
+//  │    restaurant  string    — restaurant name                              │
+//  │    name        string    — burrito name                                 │
+//  │    address     string    — street address                               │
+//  │    protein     string[]  — protein ingredients                          │
+//  │    cheese      string[]  — cheese ingredients                           │
+//  │    veg         string[]  — vegetables / produce                         │
+//  │    sauce       string[]  — sauces & condiments                          │
+//  │    extras      string[]  — extras (beans, rice, etc.)                  │
+//  │    dietary     string[]  — positive dietary tags ("vegan", "GF", etc.) │
+//  │    meat        boolean   — true if contains any meat                    │
+//  │    notes       string    — hours / caveats (shown in italic on card)    │
+//  │    anchor      string    — URL hash for the article link, e.g. "#taco"  │
+//  │    image       string    — full image URL                               │
+//  │    location    string    — must match a key in CONFIG.locations          │
+//  │    days        string[]  — days open: "monday"…"sunday"                 │
+//  └─────────────────────────────────────────────────────────────────────────┘
+// ════════════════════════════════════════════════════════════════════════════
+
+// Burrito Week runs Thu Sept. 24 – Wed Sept. 30, 2026. "days" reflects the days
+// each burrito is offered that week (all week unless the article says otherwise).
+const IMG      = "https://www.independent.com/wp-content/uploads/2026/09/";
+const WEEK     = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+const WEEKDAYS = ["monday","tuesday","wednesday","thursday","friday"];
+
+const ITEMS = [
+  // ── The Blue Owl ──
+  {
+    restaurant: "The Blue Owl", name: "Sweetheart Burrito", address: "5 W. Canon Perdido St.",
+    protein: [], cheese: [], veg: ["sweet potato", "avocado", "cabbage", "cilantro", "thai basil", "green onion"],
+    sauce: ["vegan chili mayo"], extras: ["tomato tortilla"], dietary: ["vegan", "vegetarian"], meat: false,
+    notes: "Regular hours · dine-in & to-go · add a protein of your choice",
+    anchor: "#h-the-blue-owl-sweetheart-burrito-nbsp", image: IMG + "Blue-Owl-Sweetheart-Burrito-photo_Josef-Woodard-3-edited.jpeg?resize=915%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Corazón Cocina (SB) & Corazón Cocina Sur (Carpinteria) ──
+  {
+    restaurant: "Corazón Cocina", name: "El Paisa Burrito", address: "38 W. Victoria St., Unit 122 (Public Market)",
+    protein: ["al pastor pork"], cheese: ["cheese"], veg: ["pico de gallo"],
+    sauce: ["crema", "salsa mugrosa", "tomatillo salsa"], extras: ["peruano beans", "french fries"], dietary: [], meat: true,
+    notes: "11 a.m.–4 p.m. only",
+    anchor: "#h-corazon-cocina-amp-corazon-cocina-sur-el-paisa-burrito", image: IMG + "Corazon-Cocina-by-Ryan-Cruz-2-rotated.jpeg?w=850&resize=1024%2C768",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Corazón Cocina Sur", name: "El Paisa Burrito", address: "772 Linden Ave., Carpinteria",
+    protein: ["al pastor pork"], cheese: ["cheese"], veg: ["pico de gallo"],
+    sauce: ["crema", "salsa mugrosa", "tomatillo salsa"], extras: ["peruano beans", "french fries"], dietary: [], meat: true,
+    notes: "11 a.m.–4 p.m. only",
+    anchor: "#h-corazon-cocina-amp-corazon-cocina-sur-el-paisa-burrito", image: IMG + "Corazon-Cocina-by-Ryan-Cruz-2-rotated.jpeg?w=850&resize=1024%2C768",
+    location: "carpinteria", days: WEEK,
+  },
+
+  // ── Cristino's Bakery ──
+  {
+    restaurant: "Cristino's Bakery", name: "Tropical Carnitas Burrito", address: "170 Aero Camino, Goleta",
+    protein: ["carnitas"], cheese: ["cheese"], veg: ["roasted pineapple slaw", "pickled red onions", "manzana chiles", "garlic", "oranges"],
+    sauce: [], extras: ["pinto beans", "rice"], dietary: [], meat: true,
+    notes: "To-go only",
+    anchor: "#h-cristino-s-bakery-tropical-carnitas-burrito-nbsp", image: IMG + "Cristinos-by-Matt-Kettmann-6-2.jpeg?w=768&resize=768%2C1024",
+    location: "goleta", days: WEEK,
+  },
+
+  // ── Crushcakes & Café (SB & Goleta) ──
+  {
+    restaurant: "Crushcakes & Café", name: "Bear Hug Burrito", address: "1315 Anacapa St.",
+    protein: ["fried eggs", "bacon (optional)"], cheese: ["jack cheese"], veg: ["roasted potatoes", "red onions", "arugula", "avocado (optional)"],
+    sauce: [], extras: ["tortilla chips (side)"], dietary: ["breakfast", "vegetarian option"], meat: false,
+    notes: "Regular hours · dine-in & to-go · choice of avocado or bacon",
+    anchor: "#h-crushcakes-amp-cafe-bear-hug-burrito-nbsp", image: IMG + "Crushcakes-by-Erin-Lynch-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Crushcakes & Café", name: "Bear Hug Burrito", address: "5392 Hollister Ave., Goleta",
+    protein: ["fried eggs", "bacon (optional)"], cheese: ["jack cheese"], veg: ["roasted potatoes", "red onions", "arugula", "avocado (optional)"],
+    sauce: [], extras: ["tortilla chips (side)"], dietary: ["breakfast", "vegetarian option"], meat: false,
+    notes: "Regular hours · dine-in & to-go · choice of avocado or bacon",
+    anchor: "#h-crushcakes-amp-cafe-bear-hug-burrito-nbsp", image: IMG + "Crushcakes-by-Erin-Lynch-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "goleta", days: WEEK,
+  },
+
+  // ── Dave's Dogs ──
+  {
+    restaurant: "Dave's Dogs", name: "The Early Riser", address: "149 S. Turnpike Rd.",
+    protein: ["scrambled eggs", "breakfast sausage patty"], cheese: ["cheddar"], veg: [],
+    sauce: ["chipotle aioli"], extras: ["tater tots"], dietary: ["breakfast"], meat: true,
+    notes: "Breakfast only, 8–10:30 a.m.",
+    anchor: "#h-dave-s-dogs-the-early-riser", image: IMG + "Daves-Dogs-by-Dave-Callanan-2.jpeg?w=850&resize=1024%2C768",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Downtown Eats ──
+  {
+    restaurant: "Downtown Eats", name: "California Pastor Burrito", address: "634 State St. (inside M. Special Brewing)",
+    protein: ["al pastor pork"], cheese: ["cheese"], veg: ["guacamole"],
+    sauce: ["sour cream", "avocado salsa", "classic salsa"], extras: ["french fries", "tortilla chips (side)"], dietary: [], meat: true,
+    notes: "Noon–7 p.m. only",
+    anchor: "#h-downtown-eats-california-pastor-burrito", image: IMG + "Downtown-Eats-by-Richelle-Boyd-4-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── El Zarape ──
+  {
+    restaurant: "El Zarape", name: "El Rajitas Pasilla", address: "1435 San Andres St.",
+    protein: ["eggs"], cheese: [], veg: ["pasilla peppers", "potatoes", "garlic", "onion", "avocado"],
+    sauce: ["tomatillo salsa", "red ajillo salsa"], extras: [], dietary: ["breakfast", "vegetarian"], meat: false,
+    notes: "Breakfast only, 7–11 a.m. · limit two per person",
+    anchor: "#h-el-zarape-el-rajitas-pasilla-nbsp", image: IMG + "El-Zarape-by-Meaghan-Tiernan-2-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Fresco at the Market ──
+  {
+    restaurant: "Fresco at the Market", name: "Chorizo Wrap", address: "38 W. Victoria St., Unit 102 (Public Market)",
+    protein: ["chorizo", "scrambled eggs"], cheese: ["queso fresco"], veg: ["roasted red potatoes", "anaheim chiles"],
+    sauce: ["house salsa"], extras: [], dietary: ["breakfast"], meat: true,
+    notes: "Breakfast only, 8 a.m.–noon",
+    anchor: "#h-fresco-at-the-market-chorizo-wrap", image: IMG + "Fresco-by-John-Zant-2-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Hibachi Steak House ──
+  {
+    restaurant: "Hibachi Steak House", name: "Hibachi Chicken Burrito", address: "502 State St.",
+    protein: ["chicken"], cheese: [], veg: ["grilled vegetables"],
+    sauce: ["habanero sauce"], extras: ["fried rice"], dietary: [], meat: true,
+    notes: "To-go only · Mon–Thu, 3–9 p.m.",
+    anchor: "#h-hibachi-steak-house-hibachi-chicken-burrito-hibachi-tofu-amp-sushi-burritos", image: IMG + "Hibachi-by-Christina-McDermott-4-edited.jpeg?resize=1024%2C533",
+    location: "santa barbara", days: ["monday","tuesday","wednesday","thursday"],
+  },
+  {
+    restaurant: "Hibachi Steak House", name: "Hibachi Tofu Burrito", address: "502 State St.",
+    protein: ["tofu"], cheese: [], veg: ["grilled vegetables"],
+    sauce: ["habanero sauce"], extras: ["fried rice"], dietary: ["vegetarian"], meat: false,
+    notes: "To-go only · Mon–Thu, 3–9 p.m.",
+    anchor: "#h-hibachi-steak-house-hibachi-chicken-burrito-hibachi-tofu-amp-sushi-burritos", image: IMG + "Hibachi-by-Christina-McDermott-4-edited.jpeg?resize=1024%2C533",
+    location: "santa barbara", days: ["monday","tuesday","wednesday","thursday"],
+  },
+  {
+    restaurant: "Hibachi Steak House", name: "Sushi \"Santa Barbara\" Burrito", address: "502 State St.",
+    protein: ["shrimp tempura"], cheese: [], veg: ["avocado"],
+    sauce: ["spicy mayo", "eel sauce"], extras: ["soy paper wrap", "sushi rice"], dietary: [], meat: true,
+    notes: "To-go only · Mon–Thu, 3–9 p.m.",
+    anchor: "#h-hibachi-steak-house-hibachi-chicken-burrito-hibachi-tofu-amp-sushi-burritos", image: IMG + "Hibachi-by-Christina-McDermott-4-edited.jpeg?resize=1024%2C533",
+    location: "santa barbara", days: ["monday","tuesday","wednesday","thursday"],
+  },
+
+  // ── Jalapeño S.B. (all three customizable: carne asada, al pastor, chicken, beef birria, shrimp, tofu, or black beans) ──
+  {
+    restaurant: "Jalapeño S.B.", name: "Chingón Burrito", address: "900 N. Milpas St.",
+    protein: ["carne asada", "al pastor pork"], cheese: ["cheese"], veg: ["pico de gallo", "grilled onions", "guacamole"],
+    sauce: ["sour cream"], extras: ["rice", "beans"], dietary: ["vegetarian option"], meat: true,
+    notes: "Regular hours · dine-in & to-go · swap in any protein: chicken, beef birria, shrimp, tofu, or black beans",
+    anchor: "#h-jalapeno-s-b-chingon-canon-perdido-chile-relleno-amp-santa-barbara-burritos", image: IMG + "Jalapeno-by-Ingrid-Bostrom.jpeg?w=850&resize=2048%2C1365",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Jalapeño S.B.", name: "Cañón Perdido Chile Relleno Burrito", address: "900 N. Milpas St.",
+    protein: [], cheese: ["jack cheese"], veg: ["chiles rellenos"],
+    sauce: ["relleno cream sauce"], extras: ["rice", "beans"], dietary: ["vegetarian"], meat: false,
+    notes: "Regular hours · dine-in & to-go · add any protein: carne asada, al pastor, chicken, beef birria, shrimp, tofu, or black beans",
+    anchor: "#h-jalapeno-s-b-chingon-canon-perdido-chile-relleno-amp-santa-barbara-burritos", image: IMG + "Jalapeno-by-Ingrid-Bostrom-3.jpeg?w=850&resize=2048%2C1365",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Jalapeño S.B.", name: "Santa Barbara Burrito", address: "900 N. Milpas St.",
+    protein: ["chicken"], cheese: ["cheese"], veg: ["grilled onions", "lettuce"],
+    sauce: ["habanero sauce"], extras: ["rice", "beans", "french fries"], dietary: ["vegetarian option"], meat: true,
+    notes: "Regular hours · dine-in & to-go · swap in any protein: carne asada, al pastor, beef birria, shrimp, tofu, or black beans",
+    anchor: "#h-jalapeno-s-b-chingon-canon-perdido-chile-relleno-amp-santa-barbara-burritos", image: IMG + "Jalapeno-by-Ingrid-Bostrom-5.jpeg?w=850&resize=2048%2C1365",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── La Tequila ──
+  {
+    restaurant: "La Tequila", name: "Chile Verde Burrito", address: "35 W. Hwy. 246, Buellton",
+    protein: ["chile verde pork"], cheese: [], veg: [],
+    sauce: [], extras: ["rice", "black beans"], dietary: [], meat: true,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-la-tequila-chile-verde-burrito-nbsp", image: IMG + "La-Tequila-by-Bob-Wesley-3-2.jpeg?w=768&resize=768%2C1024",
+    location: "buellton", days: WEEK,
+  },
+
+  // ── Little Alex's ──
+  {
+    restaurant: "Little Alex's", name: "Chorizo Breakfast Burrito", address: "3987 State St.",
+    protein: ["chorizo", "scrambled eggs"], cheese: ["cheese"], veg: ["potatoes"],
+    sauce: [], extras: [], dietary: ["breakfast"], meat: true,
+    notes: "Regular hours · dine-in & to-go · beans & rice available instead of potatoes",
+    anchor: "#h-little-alex-s-california-amp-chorizo-breakfast-burrito", image: IMG + "Little-Alex-by-Leslie-DInaberg-1-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Little Alex's", name: "California Burrito", address: "3987 State St.",
+    protein: ["carne asada", "carnitas", "chicken rajas", "veggie rajas"], cheese: ["cheese"], veg: ["pico de gallo"],
+    sauce: ["sour cream", "roasted chile salsa"], extras: ["french fries", "tortilla chips (side)"], dietary: ["vegetarian option"], meat: false,
+    notes: "Regular hours · dine-in & to-go · choice of carne asada, carnitas, chicken rajas, or veggie rajas",
+    anchor: "#h-little-alex-s-california-amp-chorizo-breakfast-burrito", image: IMG + "Little-Alex-by-Leslie-DInaberg-1-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Little Heart Cafecito ──
+  {
+    restaurant: "Little Heart Cafecito", name: "Carpintero Burrito", address: "38 W. Victoria St., Unit 121 (Public Market)",
+    protein: ["chorizo", "scrambled eggs"], cheese: ["jack cheese"], veg: ["potatoes", "pico de gallo"],
+    sauce: ["house salsas"], extras: [], dietary: ["breakfast"], meat: true,
+    notes: "9 a.m.–noon only",
+    anchor: "#h-little-heart-cafecito-carpintero-burrito", image: IMG + "Little-Heart-Cafecito-by-Ryan-Cruz-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Los Agaves (SB: 600 N. Milpas & 2911 De la Vina · Goleta: 7024 Marketplace Dr.) ──
+  {
+    restaurant: "Los Agaves", name: "Pastor Burrito", address: "600 N. Milpas St. · 2911 De la Vina St.",
+    protein: ["al pastor pork"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
+    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
+    notes: "Dine-in only",
+    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Los Agaves", name: "Garden Burrito", address: "600 N. Milpas St. · 2911 De la Vina St.",
+    protein: [], cheese: ["jack cheese"], veg: ["zucchini", "red bell peppers", "carrots", "lettuce", "guacamole", "pico de gallo"],
+    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: ["vegetarian"], meat: false,
+    notes: "Dine-in only",
+    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Los Agaves", name: "Chicken Burrito", address: "600 N. Milpas St. · 2911 De la Vina St.",
+    protein: ["grilled chicken"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
+    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
+    notes: "Dine-in only",
+    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Los Agaves", name: "Pastor Burrito", address: "7024 Marketplace Dr., Goleta",
+    protein: ["al pastor pork"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
+    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
+    notes: "Dine-in only",
+    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "goleta", days: WEEK,
+  },
+  {
+    restaurant: "Los Agaves", name: "Garden Burrito", address: "7024 Marketplace Dr., Goleta",
+    protein: [], cheese: ["jack cheese"], veg: ["zucchini", "red bell peppers", "carrots", "lettuce", "guacamole", "pico de gallo"],
+    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: ["vegetarian"], meat: false,
+    notes: "Dine-in only",
+    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "goleta", days: WEEK,
+  },
+  {
+    restaurant: "Los Agaves", name: "Chicken Burrito", address: "7024 Marketplace Dr., Goleta",
+    protein: ["grilled chicken"], cheese: ["jack cheese"], veg: ["lettuce", "guacamole", "pico de gallo"],
+    sauce: ["sour cream", "salsa bar"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
+    notes: "Dine-in only",
+    anchor: "#h-los-agaves-pastor-garden-amp-chicken-burritos", image: IMG + "Los-Agaves-by-Rebecca-Horrigan-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "goleta", days: WEEK,
+  },
+
+  // ── Maíz Picante ──
+  {
+    restaurant: "Maíz Picante", name: "Carnitas Burrito", address: "2714 De la Vina St.",
+    protein: ["carnitas"], cheese: ["cheese"], veg: ["pickled radishes"],
+    sauce: ["chipotle salsa", "creamy jalapeño sauce", "salsa verde"], extras: ["beans"], dietary: [], meat: true,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-maiz-picante-carnitas-pastor-amp-veggie-burritos", image: IMG + "Maiz-Picante-by-Rebecca-Horrigan-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Maíz Picante", name: "Pastor Burrito", address: "2714 De la Vina St.",
+    protein: ["al pastor pork"], cheese: ["cheese"], veg: ["pickled radishes"],
+    sauce: ["adobo", "chipotle salsa", "creamy jalapeño sauce", "salsa verde"], extras: ["beans"], dietary: [], meat: true,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-maiz-picante-carnitas-pastor-amp-veggie-burritos", image: IMG + "Maiz-Picante-by-Rebecca-Horrigan-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Maíz Picante", name: "Veggie Burrito", address: "2714 De la Vina St.",
+    protein: [], cheese: ["cheese"], veg: ["roasted bell peppers", "onion", "potatoes", "pickled radishes"],
+    sauce: ["chipotle salsa", "creamy jalapeño sauce", "salsa verde"], extras: ["beans"], dietary: ["vegetarian"], meat: false,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-maiz-picante-carnitas-pastor-amp-veggie-burritos", image: IMG + "Maiz-Picante-by-Rebecca-Horrigan-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Maria's Tacos ──
+  {
+    restaurant: "Maria's Tacos", name: "Isla Vista Special Burrito", address: "6545 Pardall Rd., Isla Vista",
+    protein: ["al pastor pork", "chicken", "carnitas", "veggie"], cheese: ["cheese"], veg: ["pico de gallo", "lettuce", "potato (optional)"],
+    sauce: ["sour cream", "red salsa", "green salsa"], extras: ["rice", "beans"], dietary: ["vegetarian option"], meat: false,
+    notes: "Lunch only, 11 a.m.–3 p.m. · choice of pastor, chicken, carnitas, veggie, or potato",
+    anchor: "#h-maria-s-tacos-isla-vista-special-burrito-nbsp", image: IMG + "Marias-Tacos-By-Taylor-Cusimano-3-edited.jpeg?resize=763%2C1024",
+    location: "isla vista", days: WEEK,
+  },
+
+  // ── Mesa Café & Bar ──
+  {
+    restaurant: "Mesa Café & Bar", name: "Breakfast Burrito", address: "1972 Cliff Dr.",
+    protein: ["scrambled eggs"], cheese: ["jack cheese"], veg: ["jalapeños", "onion"],
+    sauce: ["salsa"], extras: ["black beans", "side of hash browns, home fries, or fruit"], dietary: ["breakfast", "vegetarian"], meat: false,
+    notes: "Mon–Fri only, 7:30 a.m.–2:30 p.m.",
+    anchor: "#h-mesa-cafe-amp-bar-breakfast-burrito", image: IMG + "Mesa-Cafe-Courtesy-3-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEKDAYS,
+  },
+
+  // ── Padaro Beach Grill ──
+  {
+    restaurant: "Padaro Beach Grill", name: "The Gringo", address: "3765 Santa Claus Ln., Carpinteria",
+    protein: ["ground beef"], cheese: ["two cheeses"], veg: ["sweet onions", "cabbage", "pico de gallo", "jalapeños"],
+    sauce: ["salsa roja"], extras: [], dietary: [], meat: true,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-padaro-beach-grill-gringo-burrito", image: IMG + "Padaro-Beach-Grill-by-Jean-Yamamura-2-edited.jpeg?resize=786%2C1024",
+    location: "carpinteria", days: WEEK,
+  },
+
+  // ── The Patio Café ──
+  {
+    restaurant: "The Patio Café", name: "Chicken Fajita Burrito", address: "3007 De la Vina St.",
+    protein: ["salsa-marinated chicken"], cheese: [], veg: ["onion"],
+    sauce: ["sour cream"], extras: ["beans", "rice"], dietary: [], meat: true,
+    notes: "Dine-in only, 7 a.m.–1:30 p.m.",
+    anchor: "#h-the-patio-cafe-chicken-fajita-amp-hot-dog-burritos", image: IMG + "The-Patio-by-Ian-Chung-2.jpeg?w=850&resize=2048%2C1152",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "The Patio Café", name: "Hot Dog Burrito", address: "3007 De la Vina St.",
+    protein: ["hot dogs"], cheese: [], veg: ["onion", "tomato", "jalapeños"],
+    sauce: ["mayo", "ketchup"], extras: [], dietary: [], meat: true,
+    notes: "Dine-in only, 7 a.m.–1:30 p.m.",
+    anchor: "#h-the-patio-cafe-chicken-fajita-amp-hot-dog-burritos", image: IMG + "The-Patio-by-Ian-Chung-5.jpeg?w=850&resize=2048%2C1152",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Renaud's Patisserie & Bistro (SB & Montecito) ──
+  {
+    restaurant: "Renaud's Patisserie & Bistro", name: "Breakfast Burrito", address: "3315 State St. · 1324 State St., Ste. N",
+    protein: ["bacon", "eggs"], cheese: ["swiss cheese"], veg: ["potatoes"],
+    sauce: ["roasted tomato salsa"], extras: [], dietary: ["breakfast"], meat: true,
+    notes: "Available until 2:30 p.m.",
+    anchor: "#h-renaud-s-patisserie-amp-bistro-breakfast-burrito", image: IMG + "Renauds-by-Leslie-Dinaberg-1-1.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Renaud's Patisserie & Bistro", name: "Breakfast Burrito", address: "1187 Coast Village Rd., Ste. 7, Montecito",
+    protein: ["bacon", "eggs"], cheese: ["swiss cheese"], veg: ["potatoes"],
+    sauce: ["roasted tomato salsa"], extras: [], dietary: ["breakfast"], meat: true,
+    notes: "Available until 2:30 p.m.",
+    anchor: "#h-renaud-s-patisserie-amp-bistro-breakfast-burrito", image: IMG + "Renauds-by-Leslie-Dinaberg-1-1.jpeg?w=768&resize=768%2C1024",
+    location: "montecito", days: WEEK,
+  },
+
+  // ── Rinkside Café ──
+  {
+    restaurant: "Rinkside Café", name: "Teriyaki Turn-Up", address: "6985 Santa Felicia Dr., Goleta",
+    protein: ["huli huli chicken thighs", "teriyaki tofu"], cheese: [], veg: ["cabbage", "scallions"],
+    sauce: ["teriyaki sauce", "sriracha mayo"], extras: ["rice", "macaroni salad"], dietary: ["vegetarian option"], meat: false,
+    notes: "Burrito Week exclusive · choice of chicken or tofu",
+    anchor: "#h-rinkside-cafe-teriyaki-turn-up", image: IMG + "Rinkside-by-Terry-Ortega-3-edited.jpeg?resize=786%2C1024",
+    location: "goleta", days: WEEK,
+  },
+
+  // ── Savoy Café & Deli ──
+  {
+    restaurant: "Savoy Café & Deli", name: "Savoy Breakfast Burrito", address: "24 W. Figueroa St.",
+    protein: ["organic eggs"], cheese: ["jack cheese"], veg: ["potatoes", "avocado", "pico de gallo"],
+    sauce: [], extras: [], dietary: ["breakfast", "vegetarian"], meat: false,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-savoy-cafe-amp-deli-savoy-breakfast-burrito", image: IMG + "Savoy-by-Tiana-Molony-6-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Shalhoob's ──
+  {
+    restaurant: "Shalhoob's", name: "Santa Barbara Style Burrito", address: "220 Gray Ave. · 5112 Hollister Ave.",
+    protein: ["smoked tri-tip"], cheese: ["cheese"], veg: ["pico de gallo", "avocado"],
+    sauce: ["avocado salsa"], extras: ["cowboy beans", "french fries"], dietary: [], meat: true,
+    notes: "Dine-in only",
+    anchor: "#h-shalhoob-s-santa-barbara-style-burrito", image: IMG + "Shalhoob-by-Dave-Callanan-2.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Seoulmate Kitchen ──
+  {
+    restaurant: "Seoulmate Kitchen", name: "Gimbap Burrito", address: "38 W. Victoria St., Unit 115 (Public Market)",
+    protein: ["bulgogi beef", "tofu"], cheese: [], veg: ["carrots", "cucumber", "daikon", "spinach", "nori"],
+    sauce: ["scallion aioli", "seoulsauce (gochujang)"], extras: ["rice"], dietary: ["vegetarian option"], meat: false,
+    notes: "Regular hours · dine-in & to-go · choice of bulgogi beef or tofu",
+    anchor: "#h-seoulmate-kitchen-gimbap-burrito-nbsp", image: IMG + "Seoulmate-by-George-Yatchisin.jpeg?w=850&resize=856%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Taqueria La Unica ──
+  {
+    restaurant: "Taqueria La Unica", name: "El Rey Burrito", address: "3771 State St.",
+    protein: ["al pastor pork"], cheese: ["chihuahua cheese"], veg: ["pineapple", "onion", "cilantro"],
+    sauce: ["salsa bar"], extras: ["refried pinto beans", "rice"], dietary: [], meat: true,
+    notes: "Dine-in only",
+    anchor: "#h-taqueria-la-unica-el-rey-amp-garden-burritos", image: IMG + "La-Unica-by-Rebecca-Horrigan-2-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+  {
+    restaurant: "Taqueria La Unica", name: "Garden Burrito", address: "3771 State St.",
+    protein: [], cheese: ["chihuahua cheese"], veg: ["mushrooms"],
+    sauce: ["salsa bar"], extras: ["refried pinto beans", "rice"], dietary: ["vegetarian"], meat: false,
+    notes: "Dine-in only",
+    anchor: "#h-taqueria-la-unica-el-rey-amp-garden-burritos", image: IMG + "La-Unica-by-Rebecca-Horrigan-2-2-rotated.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+
+  // ── Yellow Belly Tap & Restaurant ──
+  {
+    restaurant: "Yellow Belly Tap & Restaurant", name: "Belly Up Burrito", address: "2611 De la Vina St.",
+    protein: ["ground beef"], cheese: ["cheddar"], veg: ["caramelized onion", "lettuce", "tomato"],
+    sauce: ["chipotle crema"], extras: ["pinto beans", "rice", "tortilla chips (side)"], dietary: [], meat: true,
+    notes: "Regular hours · dine-in & to-go",
+    anchor: "#h-yellow-belly-tap-amp-restaurant-belly-up-burrito", image: IMG + "Yellow-Belly-by-Alex-Noormand-courtesy.jpeg?w=768&resize=768%2C1024",
+    location: "santa barbara", days: WEEK,
+  },
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ENGINE — no edits needed below this line
+// ════════════════════════════════════════════════════════════════════════════
+
+const ALL_DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+const DAY_LABELS = { monday:"Monday", tuesday:"Tuesday", wednesday:"Wednesday", thursday:"Thursday", friday:"Friday", saturday:"Saturday", sunday:"Sunday" };
+
+let selected    = new Set();
+let negSelected = new Set();
+let daySelected = new Set();
+let locSelected = new Set();
+
+// ── Render header from CONFIG ────────────────────────────────────────────────
+(function renderHeader() {
+  document.title = `SB ${CONFIG.titleHighlight} Week 2026 — Find Your ${CONFIG.titleHighlight}`;
+  document.getElementById('hdr-eyebrow').textContent = CONFIG.eyebrow;
+  document.getElementById('hdr-title').innerHTML =
+    `${CONFIG.titlePrefix} <span>${CONFIG.titleHighlight}</span> ${CONFIG.titleSuffix}`;
+  document.getElementById('hdr-tagline').textContent = CONFIG.tagline;
+  document.getElementById('results-title').textContent = CONFIG.itemLabel;
+
+  const linkEl = document.getElementById('hdr-article-link');
+  if (CONFIG.articleUrl) {
+    linkEl.innerHTML = `${CONFIG.articleLabel.replace(/here$/, '')} <a href="${CONFIG.articleUrl}" target="_blank" rel="noopener">here</a>`;
+  } else {
+    linkEl.style.display = 'none';
+  }
+})();
+
+// ── Collect all ingredient values from ITEMS ─────────────────────────────────
+function buildCategoryMaps() {
+  const maps = {};
+  CONFIG.ingredientCategories.forEach(cat => { maps[cat.key] = new Set(); });
+  ITEMS.forEach(item => {
+    CONFIG.ingredientCategories.forEach(cat => {
+      (item[cat.key] || []).forEach(v => maps[cat.key].add(v));
+    });
+  });
+  return maps;
+}
+
+const dietaryPositive = new Set();
+ITEMS.forEach(item => (item.dietary || []).forEach(d => dietaryPositive.add(d)));
+
+// ── Build chips ───────────────────────────────────────────────────────────────
+function buildChips() {
+  const catMaps = buildCategoryMaps();
+  const body = document.getElementById('fg-ingredients-body');
+
+  // Ingredient subcategory sections
+  CONFIG.ingredientCategories.forEach(cat => {
+    const sectionId = `cat-${cat.key}-section`;
+    const listId    = `cat-${cat.key}`;
+
+    const section = document.createElement('div');
+    section.className = 'category-section';
+    section.id = sectionId;
+    section.innerHTML = `
+      <div class="category-label" onclick="toggleCat('${sectionId}')">${cat.label} <span class="cat-arrow">▾</span></div>
+      <div class="chip-list" id="${listId}"></div>`;
+    body.appendChild(section);
+
+    const listEl = document.getElementById(listId);
+    [...(catMaps[cat.key] || [])].sort().forEach(item => {
+      listEl.appendChild(makeIngChip(item, item.toLowerCase()));
+    });
+  });
+
+  // Dietary positive tags
+  const dietSection = document.getElementById('cat-dietary-section') || (() => {
+    const sec = document.createElement('div');
+    sec.className = 'category-section';
+    sec.id = 'cat-dietary-section';
+    sec.innerHTML = `<div class="category-label" onclick="toggleCat('cat-dietary-section')">Dietary <span class="cat-arrow">▾</span></div><div class="chip-list" id="cat-dietary"></div>`;
+    body.appendChild(sec);
+    return sec;
+  })();
+  const dietList = document.getElementById('cat-dietary') || dietSection.querySelector('.chip-list');
+  [...dietaryPositive].sort().forEach(item => dietList.appendChild(makeIngChip(item, item.toLowerCase())));
+
+  // Dietary negative (restriction) filters
+  CONFIG.dietaryFilters.forEach(f => {
+    const chip = document.createElement('div');
+    chip.className = 'chip dietary-negative';
+    chip.dataset.negkey = f.key;
+    chip.dataset.searchlabel = f.label.toLowerCase();
+    chip.innerHTML = `<span class="checkmark"></span> ${f.label}`;
+    chip.addEventListener('click', () => toggleNeg(chip, f.key));
+    dietList.appendChild(chip);
+  });
+
+  // Day chips
+  const dayEl = document.getElementById('cat-days');
+  ALL_DAYS.forEach(day => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.dataset.daykey = day;
+    chip.dataset.searchlabel = DAY_LABELS[day].toLowerCase();
+    chip.innerHTML = `<span class="checkmark"></span> ${DAY_LABELS[day]}`;
+    chip.addEventListener('click', () => toggleDay(chip, day));
+    dayEl.appendChild(chip);
+  });
+
+  // Location chips
+  const locEl = document.getElementById('cat-location');
+  CONFIG.locations.forEach(opt => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.dataset.lockey = opt.key;
+    chip.dataset.searchlabel = opt.label.toLowerCase();
+    chip.innerHTML = `<span class="checkmark"></span> ${opt.label}`;
+    chip.addEventListener('click', () => toggleLoc(chip, opt.key));
+    locEl.appendChild(chip);
+  });
+}
+
+function makeIngChip(label, key) {
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.dataset.ingredient = key;
+  chip.dataset.searchlabel = label.toLowerCase();
+  chip.innerHTML = `<span class="checkmark"></span> ${label}`;
+  chip.addEventListener('click', () => toggleChip(chip, key));
+  return chip;
+}
+
+// ── Toggle logic ──────────────────────────────────────────────────────────────
+function toggleChip(chip, key) {
+  selected.has(key) ? (selected.delete(key), chip.classList.remove('active')) : (selected.add(key), chip.classList.add('active'));
+  updateResults(); updateSelectionBar(); updateMobileBadge();
+}
+function toggleNeg(chip, key) {
+  negSelected.has(key) ? (negSelected.delete(key), chip.classList.remove('active')) : (negSelected.add(key), chip.classList.add('active'));
+  updateResults(); updateSelectionBar(); updateMobileBadge();
+}
+function toggleDay(chip, key) {
+  daySelected.has(key) ? (daySelected.delete(key), chip.classList.remove('active')) : (daySelected.add(key), chip.classList.add('active'));
+  updateResults(); updateSelectionBar(); updateMobileBadge();
+}
+function toggleLoc(chip, key) {
+  locSelected.has(key) ? (locSelected.delete(key), chip.classList.remove('active')) : (locSelected.add(key), chip.classList.add('active'));
+  updateResults(); updateSelectionBar(); updateMobileBadge();
+}
+function clearAll() {
+  selected.clear(); negSelected.clear(); daySelected.clear(); locSelected.clear();
+  document.querySelectorAll('.chip.active').forEach(c => c.classList.remove('active'));
+  updateResults(); updateSelectionBar(); updateMobileBadge();
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+function filterChips(query) {
+  const q = query.trim().toLowerCase();
+  document.getElementById('search-clear').classList.toggle('visible', query.length > 0);
+  let anyVisible = false;
+  document.querySelectorAll('.chip').forEach(chip => {
+    const label = chip.dataset.searchlabel || chip.textContent.trim().toLowerCase();
+    const match = !q || label.includes(q);
+    chip.classList.toggle('hidden-by-search', !match);
+    if (match) anyVisible = true;
+  });
+  // Hide empty ingredient subsections
+  document.querySelectorAll('.category-section').forEach(sec => {
+    const vis = [...sec.querySelectorAll('.chip:not(.hidden-by-search)')].length > 0;
+    sec.style.display = vis ? '' : 'none';
+  });
+  // Auto-expand groups with matches when searching
+  ['fg-ingredients','fg-days','fg-location'].forEach(id => {
+    const group = document.getElementById(id);
+    if (!group) return;
+    const hasVis = [...group.querySelectorAll('.chip:not(.hidden-by-search)')].length > 0;
+    if (q) group.classList.toggle('collapsed', !hasVis);
+  });
+  document.getElementById('no-results-msg').style.display = q && !anyVisible ? 'block' : 'none';
+}
+function clearSearch() {
+  const inp = document.getElementById('ing-search');
+  inp.value = ''; inp.focus(); filterChips('');
+}
+
+// ── Active selection bar ──────────────────────────────────────────────────────
+function updateSelectionBar() {
+  const bar = document.getElementById('active-selections');
+  bar.innerHTML = '';
+  const addPill = (label, onRemove, isNeg = false) => {
+    const chip = document.createElement('span');
+    chip.className = `sel-chip${isNeg ? ' negative' : ''}`;
+    chip.innerHTML = `${label} <span class="remove">✕</span>`;
+    chip.addEventListener('click', onRemove);
+    bar.appendChild(chip);
+  };
+  selected.forEach(key => addPill(key, () => {
+    selected.delete(key);
+    const sc = document.querySelector(`.chip[data-ingredient="${CSS.escape(key)}"]`);
+    if (sc) sc.classList.remove('active');
+    updateResults(); updateSelectionBar(); updateMobileBadge();
+  }));
+  negSelected.forEach(key => {
+    const f = CONFIG.dietaryFilters.find(f => f.key === key);
+    if (!f) return;
+    addPill(f.label, () => {
+      negSelected.delete(key);
+      const sc = document.querySelector(`.chip[data-negkey="${key}"]`);
+      if (sc) sc.classList.remove('active');
+      updateResults(); updateSelectionBar(); updateMobileBadge();
+    }, true);
+  });
+  daySelected.forEach(key => addPill(DAY_LABELS[key], () => {
+    daySelected.delete(key);
+    const sc = document.querySelector(`.chip[data-daykey="${key}"]`);
+    if (sc) sc.classList.remove('active');
+    updateResults(); updateSelectionBar(); updateMobileBadge();
+  }));
+  locSelected.forEach(key => {
+    const opt = CONFIG.locations.find(o => o.key === key);
+    addPill(opt ? opt.label : key, () => {
+      locSelected.delete(key);
+      const sc = document.querySelector(`.chip[data-lockey="${key}"]`);
+      if (sc) sc.classList.remove('active');
+      updateResults(); updateSelectionBar(); updateMobileBadge();
+    });
+  });
+}
+
+// ── Filter/results logic ──────────────────────────────────────────────────────
+function getAllIngredients(item) {
+  const vals = [];
+  CONFIG.ingredientCategories.forEach(cat => vals.push(...(item[cat.key] || [])));
+  vals.push(...(item.dietary || []));
+  return vals.map(v => v.toLowerCase());
+}
+
+function itemPassesAllFilters(item) {
+  for (const key of negSelected) {
+    const f = CONFIG.dietaryFilters.find(f => f.key === key);
+    if (f && !f.test(item)) return false;
+  }
+  if (daySelected.size > 0 && ![...daySelected].some(d => (item.days || []).includes(d))) return false;
+  if (locSelected.size > 0 && !locSelected.has(item.location)) return false;
+  return true;
+}
+
+function updateResults() {
+  const wrappers = document.querySelectorAll('.card-link');
+  const note = document.getElementById('match-note');
+  let visible = 0;
+  const hasAnyFilter = selected.size > 0 || negSelected.size > 0 || daySelected.size > 0 || locSelected.size > 0;
+
+  wrappers.forEach(wrapper => {
+    const card = wrapper.querySelector('.card');
+    const idx = parseInt(card.dataset.idx);
+    const item = ITEMS[idx];
+    const allIng = getAllIngredients(item);
+
+    if (!itemPassesAllFilters(item)) { wrapper.classList.add('hidden'); return; }
+
+    if (selected.size === 0) {
+      wrapper.classList.remove('hidden');
+      card.querySelector('.match-score').classList.remove('visible');
+      card.querySelectorAll('.ing-tag').forEach(t => t.classList.remove('matched'));
+      visible++; return;
+    }
+
+    const matches = [...selected].filter(sel => allIng.some(ing => ing.includes(sel)));
+    if (matches.length > 0) {
+      wrapper.classList.remove('hidden');
+      const scoreEl = card.querySelector('.match-score');
+      scoreEl.textContent = `${matches.length}/${selected.size} match`;
+      scoreEl.classList.add('visible');
+      visible++;
+      card.querySelectorAll('.ing-tag').forEach(tag => {
+        tag.classList.toggle('matched', [...selected].some(sel => tag.textContent.toLowerCase().includes(sel)));
+      });
+    } else {
+      wrapper.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('count').textContent = visible;
+  const parts = [];
+  if (selected.size > 0)    parts.push(`${selected.size} ingredient${selected.size>1?'s':''}`);
+  if (negSelected.size > 0)  parts.push(`${negSelected.size} restriction${negSelected.size>1?'s':''}`);
+  if (daySelected.size > 0)  parts.push(`${daySelected.size} day${daySelected.size>1?'s':''}`);
+  if (locSelected.size > 0)  parts.push(`${locSelected.size} location${locSelected.size>1?'s':''}`);
+  note.textContent = parts.length ? parts.join(' · ') : '';
+
+  if (selected.size > 0) {
+    const container = document.getElementById('cards');
+    const vis = [...container.querySelectorAll('.card-link:not(.hidden)')];
+    vis.sort((a, b) => (parseInt(b.querySelector('.match-score').textContent)||0) - (parseInt(a.querySelector('.match-score').textContent)||0));
+    vis.forEach(w => container.appendChild(w));
+  }
+}
+
+// ── Build cards ───────────────────────────────────────────────────────────────
+function buildCards() {
+  const container = document.getElementById('cards');
+  container.innerHTML = '';
+
+  if (ITEMS.length === 0) {
+    container.innerHTML = `
+      <div class="coming-soon">
+        <div class="cs-emoji">🌯</div>
+        <h3>Menu coming soon</h3>
+        <p>Restaurant and burrito listings will appear here once the menu data is added. Check back closer to Burrito Week!</p>
+      </div>`;
+    document.getElementById('count').textContent = '0';
+    return;
+  }
+
+  const sorted = [...ITEMS].sort((a, b) => a.restaurant.localeCompare(b.restaurant));
+  // Re-index ITEMS to match sorted order so card data-idx stays correct
+  sorted.forEach((item, i) => {
+    ITEMS[i] = item; // mutate in place so filter logic stays consistent
+  });
+
+  ITEMS.forEach((item, i) => {
+    const allIng = CONFIG.ingredientCategories.flatMap(cat => item[cat.key] || []);
+    const wrapper = document.createElement('a');
+    wrapper.className = 'card-link';
+
+    if (CONFIG.articleBase && item.anchor) {
+      wrapper.href = CONFIG.articleBase + item.anchor;
+      wrapper.target = '_blank';
+      wrapper.rel = 'noopener';
+      wrapper.addEventListener('click', e => {
+        e.preventDefault();
+        const win = window.open(CONFIG.articleBase + item.anchor, '_blank');
+        if (win) {
+          setTimeout(() => { try { win.location.hash = item.anchor; } catch(err) {} }, 1500);
+          setTimeout(() => { try { win.location.hash = item.anchor; } catch(err) {} }, 3000);
+        }
+      });
+    } else {
+      wrapper.style.cursor = 'default';
+    }
+
+    wrapper.innerHTML = `
+      <div class="card" data-idx="${i}">
+        <div class="match-score"></div>
+        ${item.image ? `<img class="card-img" src="${item.image}" alt="${item.name}" loading="lazy">` : ''}
+        <div class="card-body">
+          <div class="card-restaurant">${item.restaurant}</div>
+          <div class="card-name">${item.name}</div>
+          <div class="card-ingredients">${allIng.map(ing => `<span class="ing-tag">${ing}</span>`).join('')}</div>
+          <div class="card-address">${item.address}</div>
+          ${item.notes ? `<div class="card-notes">${item.notes}</div>` : ''}
+          ${CONFIG.articleBase && item.anchor ? `<div class="read-more">Read full review →</div>` : ''}
+        </div>
+      </div>`;
+    container.appendChild(wrapper);
+  });
+
+  document.getElementById('count').textContent = ITEMS.length;
+}
+
+// ── Collapsible panels ────────────────────────────────────────────────────────
+function toggleCat(sectionId)  { document.getElementById(sectionId).classList.toggle('collapsed'); }
+function toggleGroup(groupId)  { document.getElementById(groupId).classList.toggle('collapsed'); }
+
+// ── Mobile toggle ─────────────────────────────────────────────────────────────
+function toggleMobileSidebar() {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+  document.getElementById('filter-toggle-btn').classList.toggle('open');
+}
+function updateMobileBadge() {
+  const total = selected.size + negSelected.size + daySelected.size + locSelected.size;
+  const badge = document.getElementById('mobile-filter-count');
+  if (!badge) return;
+  badge.textContent = total;
+  badge.classList.toggle('has-filters', total > 0);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildChips();
+buildCards();
+</script>
+</body>
+</html>
